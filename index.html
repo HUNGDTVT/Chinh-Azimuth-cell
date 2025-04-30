@@ -1,182 +1,102 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Chỉnh Azimuth Cell - Azimuth Line Visualizer</title>
+  <title>Directional Lines Bilingual (Satellite Map)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      box-sizing: border-box;
-    }
-    #map {
-      height: 500px;
-      width: 100%;
-      margin-top: 20px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 15px;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    textarea, input { width: 100%; margin-bottom: 10px; padding: 8px; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    #map { height: 500px; margin-top: 20px; }
+    button { padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
-  <h2>Chỉnh Azimuth Cell / Azimuth Cell Plot</h2>
+  <h2>Nhập thông tin / Enter Information</h2>
+  <label for="point">Toạ độ (dạng bất kỳ):</label>
+  <textarea id="point" rows="2">-25.9493454, 32.5620781</textarea>
 
-  <label>Tên điểm / Point Name</label>
-  <input type="text" id="pointName" placeholder="VD: MAC278" />
+  <label for="name">Tên điểm / Point Name:</label>
+  <textarea id="name" rows="2">MAC278</textarea>
 
-  <label>Tọa độ (nhập dạng bất kỳ) / Coordinates (any format):</label>
-  <textarea id="coordinates" rows="3" placeholder="-25.9493454, 32.5620781 hoặc -25.9493454 32.5620781 hoặc xuống dòng"></textarea>
+  <label for="length">Độ dài mỗi đường (m) / Line Length (m):</label>
+  <textarea id="length" rows="1">100</textarea>
 
-  <label>Độ dài đường / Line Length (meters)</label>
-  <input type="number" id="distance" value="200" />
-
-  <label>Góc đường thứ 1 / Angle of Line 1 (deg)</label>
-  <input type="number" id="angle1" value="60" />
-
-  <label>Góc đường thứ 2 / Angle of Line 2 (deg)</label>
-  <input type="number" id="angle2" value="180" />
-
-  <label>Góc đường thứ 3 / Angle of Line 3 (deg)</label>
-  <input type="number" id="angle3" value="300" />
+  <label for="angles">3 Góc (độ, cách nhau bởi dấu phẩy) / 3 Angles (degrees, comma-separated):</label>
+  <textarea id="angles" rows="2">60,180,300</textarea>
 
   <button onclick="drawLines()">Vẽ đường / Draw Lines</button>
-  <button onclick="exportKML()">Xuất KML / Export KML</button>
 
   <div id="map"></div>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAxOrCC56tuPjujnYB53luYRqe2aN-fvik"></script>
   <script>
-    let map, marker, lines = [];
+    let map;
+    let lines = [];
 
-    function parseCoordinates(input) {
-      const cleaned = input.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+    function parseCoordinate(input) {
+      const cleaned = input.replace(/[(),]/g, ' ').trim().replace(/\s+/g, ' ');
       const parts = cleaned.split(' ');
       if (parts.length >= 2) {
-        return {
-          lat: parseFloat(parts[0]),
-          lng: parseFloat(parts[1])
-        };
+        return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
       }
-      alert("Tọa độ không hợp lệ. Vui lòng nhập lại. / Invalid coordinates.");
       return null;
     }
 
-    function toRad(deg) {
-      return deg * Math.PI / 180;
-    }
-
-    function computeDestinationPoint(lat, lng, distance, bearing) {
-      const R = 6371000; // Earth radius in meters
-      const δ = distance / R;
-      const θ = toRad(bearing);
-      const φ1 = toRad(lat);
-      const λ1 = toRad(lng);
-
-      const φ2 = Math.asin(Math.sin(φ1) * Math.cos(δ) +
-                           Math.cos(φ1) * Math.sin(δ) * Math.cos(θ));
-      const λ2 = λ1 + Math.atan2(Math.sin(θ) * Math.sin(δ) * Math.cos(φ1),
-                                 Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2));
-      return {
-        lat: φ2 * 180 / Math.PI,
-        lng: λ2 * 180 / Math.PI
-      };
-    }
-
     function drawLines() {
-      const coordInput = document.getElementById("coordinates").value;
-      const pointName = document.getElementById("pointName").value;
-      const coord = parseCoordinates(coordInput);
-      if (!coord) return;
+      const pointInput = document.getElementById("point").value;
+      const point = parseCoordinate(pointInput);
+      const name = document.getElementById("name").value;
+      const length = parseFloat(document.getElementById("length").value);
+      const angles = document.getElementById("angles").value.split(',').map(a => parseFloat(a.trim()));
 
-      const angles = [
-        { angle: parseFloat(document.getElementById("angle1").value), color: "red" },
-        { angle: parseFloat(document.getElementById("angle2").value), color: "yellow" },
-        { angle: parseFloat(document.getElementById("angle3").value), color: "blue" }
-      ];
-      const length = parseFloat(document.getElementById("distance").value);
+      if (!point || angles.length !== 3 || isNaN(length)) {
+        alert("Vui lòng nhập đúng định dạng. Please enter correct format.");
+        return;
+      }
 
       if (!map) {
         map = new google.maps.Map(document.getElementById("map"), {
-          center: coord,
-          zoom: 17,
-          mapTypeId: 'satellite'
+          center: point,
+          zoom: 20,
+          mapTypeId: "satellite"
         });
       } else {
-        map.setCenter(coord);
-        map.setZoom(17);
+        map.setCenter(point);
         lines.forEach(line => line.setMap(null));
+        lines = [];
       }
 
-      if (marker) marker.setMap(null);
-      marker = new google.maps.Marker({ position: coord, map, title: pointName });
+      new google.maps.Marker({
+        position: point,
+        map: map,
+        title: name
+      });
 
-      lines = angles.map(info => {
-        const end = computeDestinationPoint(coord.lat, coord.lng, length, info.angle);
-        return new google.maps.Polyline({
-          path: [coord, end],
+      const colors = ["#FF0000", "#FFFF00", "#00008B"];
+      const R = 6378137;
+
+      angles.forEach((angle, idx) => {
+        const rad = angle * Math.PI / 180;
+        const dx = length * Math.sin(rad);
+        const dy = length * Math.cos(rad);
+
+        const destLat = point.lat + (dy / R) * (180 / Math.PI);
+        const destLng = point.lng + (dx / (R * Math.cos(point.lat * Math.PI / 180))) * (180 / Math.PI);
+
+        const line = new google.maps.Polyline({
+          path: [point, { lat: destLat, lng: destLng }],
           geodesic: true,
-          strokeColor: info.color,
+          strokeColor: colors[idx],
           strokeOpacity: 1.0,
           strokeWeight: 4,
           map: map
         });
+        lines.push(line);
       });
     }
 
-    function exportKML() {
-      const pointName = document.getElementById("pointName").value;
-      const coordInput = document.getElementById("coordinates").value;
-      const coord = parseCoordinates(coordInput);
-      if (!coord) return;
-
-      const angles = [
-        { angle: parseFloat(document.getElementById("angle1").value), color: "ff0000ff", name: "Line Red" },
-        { angle: parseFloat(document.getElementById("angle2").value), color: "ff00ffff", name: "Line Yellow" },
-        { angle: parseFloat(document.getElementById("angle3").value), color: "ffff0000", name: "Line Blue" }
-      ];
-      const length = parseFloat(document.getElementById("distance").value);
-
-      const kmlLines = angles.map(a => {
-        const end = computeDestinationPoint(coord.lat, coord.lng, length, a.angle);
-        return `
-  <Placemark>
-    <name>${a.name}</name>
-    <Style><LineStyle><color>${a.color}</color><width>4</width></LineStyle></Style>
-    <LineString><tessellate>1</tessellate>
-    <coordinates>${coord.lng},${coord.lat},0 ${end.lng},${end.lat},0</coordinates>
-    </LineString>
-  </Placemark>`;
-      }).join("");
-
-      const kml = `<?xml version="1.0" ?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>
-  <Placemark><name>${pointName}</name>
-    <Point><coordinates>${coord.lng},${coord.lat},0</coordinates></Point>
-  </Placemark>
-  ${kmlLines}
-</Document>
-</kml>`;
-
-      const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${pointName || 'output'}.kml`;
-      link.click();
-    }
+    window.onload = drawLines;
   </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAxOrCC56tuPjujnYB53luYRqe2aN-fvik"></script>
 </body>
 </html>
