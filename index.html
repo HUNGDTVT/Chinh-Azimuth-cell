@@ -9,7 +9,16 @@
     label { font-weight: bold; display: block; margin-top: 10px; }
     #map { height: 500px; margin-top: 20px; position: relative; }
     button { padding: 10px 20px; font-size: 16px; margin-right: 10px; }
-    #info { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 5px; font-size: 14px; }
+    #info, #summary {
+      position: absolute;
+      left: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    #info { bottom: 40px; }
+    #summary { bottom: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -32,6 +41,7 @@
 
   <div id="map">
     <div id="info"></div>
+    <div id="summary"></div>
   </div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -41,7 +51,7 @@
     let pointData = {};
 
     function parseCoordinate(input) {
-      const cleaned = input.replace(/[(),]/g, ' ').trim().replace(/\s+/g, ' ');
+      const cleaned = input.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
       const parts = cleaned.split(' ');
       if (parts.length >= 2) {
         return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
@@ -67,7 +77,8 @@
         map = new google.maps.Map(document.getElementById("map"), {
           center: point,
           zoom: 20,
-          mapTypeId: "satellite"
+          mapTypeId: "satellite",
+          gestureHandling: "greedy"
         });
       } else {
         map.setCenter(point);
@@ -104,6 +115,7 @@
       });
 
       document.getElementById("info").textContent = `${name}: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)} | Độ dài: ${length}m | Góc: ${angles.join(", ")}`;
+      document.getElementById("summary").textContent = `Tên điểm: ${name} | Toạ độ: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)} | Độ dài: ${length}m | Góc: ${angles.join(", ")}`;
     }
 
     function downloadKML() {
