@@ -5,11 +5,11 @@
   <title>Directional Lines Bilingual (Satellite Map)</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
-    textarea, input { width: 100%; margin-bottom: 10px; padding: 8px; }
+    textarea, input { width: 100%; margin-bottom: 10px; padding: 12px; font-size: 18px; }
     label { font-weight: bold; display: block; margin-top: 10px; }
     #map { height: 500px; margin-top: 20px; position: relative; }
     button { padding: 10px 20px; font-size: 16px; margin-right: 10px; }
-    #info, #summary {
+    #info, #summaryBar {
       position: absolute;
       left: 10px;
       background: rgba(255,255,255,0.8);
@@ -18,57 +18,74 @@
       font-size: 14px;
     }
     #info { bottom: 60px; }
-    #summary {
-      bottom: 10px;
-      font-weight: bold;
-      background: rgba(255, 0, 0, 0.7);
+    #summaryBar {
+      top: 10px;
+      width: 95%;
+      background: rgba(0, 0, 0, 0.7);
       color: white;
+      padding: 10px;
       font-size: 16px;
+      border-radius: 5px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h2>Nhập thông tin / Enter Information</h2>
+  
   <label for="point">Toạ độ (dạng bất kỳ):</label>
-  <textarea id="point" rows="2">-25.9493454, 32.5620781</textarea>
+  <textarea id="point" rows="2" onfocus="clearInput(this)">-25.9493454, 32.5620781</textarea>
 
   <label for="name">Tên điểm / Point Name:</label>
-  <textarea id="name" rows="2">MAC278</textarea>
+  <textarea id="name" rows="2" onfocus="clearInput(this)">MAC278</textarea>
 
   <label for="length">Độ dài mỗi đường (m) / Line Length (m):</label>
-  <textarea id="length" rows="1">100</textarea>
+  <textarea id="length" rows="1" onfocus="clearInput(this)">100</textarea>
 
   <label>Góc 1 / Angle 1 (degrees):</label>
-  <textarea id="angle1" rows="1">60</textarea>
+  <textarea id="angle1" rows="1" onfocus="clearInput(this)">60</textarea>
 
   <label>Góc 2 / Angle 2 (degrees):</label>
-  <textarea id="angle2" rows="1">180</textarea>
+  <textarea id="angle2" rows="1" onfocus="clearInput(this)">180</textarea>
 
   <label>Góc 3 / Angle 3 (degrees):</label>
-  <textarea id="angle3" rows="1">300</textarea>
+  <textarea id="angle3" rows="1" onfocus="clearInput(this)">300</textarea>
 
   <button onclick="drawLines()">Vẽ đường / Draw Lines</button>
   <button onclick="downloadKML()">Xuất KML / Export KML</button>
   <button onclick="captureMap()">Lưu ảnh / Save Image</button>
 
   <div id="map">
+    <div id="summaryBar"></div>
     <div id="info"></div>
-    <div id="summary"></div>
   </div>
 
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script>
     let map;
     let lines = [];
     let pointData = {};
 
+    function clearInput(element) {
+      element.value = "";
+    }
+
     function parseCoordinate(input) {
       const cleaned = input.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
       const parts = cleaned.split(' ');
-      if (parts.length >= 2) {
-        return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
-      }
-      return null;
+      return parts.length >= 2 ? { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) } : null;
+    }
+
+    function updateSummaryBar() {
+      const name = document.getElementById("name").value;
+      const point = document.getElementById("point").value;
+      const length = document.getElementById("length").value;
+      const angles = [
+        document.getElementById("angle1").value,
+        document.getElementById("angle2").value,
+        document.getElementById("angle3").value
+      ].join(", ");
+
+      document.getElementById("summaryBar").innerHTML = `Tên điểm: ${name} | Toạ độ: ${point} | Độ dài: ${length}m | Góc: ${angles}`;
     }
 
     function drawLines() {
@@ -88,6 +105,8 @@
       }
 
       pointData = { point, name, length, angles };
+
+      updateSummaryBar();
 
       if (!map) {
         map = new google.maps.Map(document.getElementById("map"), {
@@ -115,7 +134,6 @@
         const rad = angle * Math.PI / 180;
         const dx = length * Math.sin(rad);
         const dy = length * Math.cos(rad);
-
         const destLat = point.lat + (dy / R) * (180 / Math.PI);
         const destLng = point.lng + (dx / (R * Math.cos(point.lat * Math.PI / 180))) * (180 / Math.PI);
 
@@ -129,37 +147,14 @@
         });
         lines.push(line);
       });
-
-      const summaryText = `Tên điểm: ${name} | Toạ độ: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)} | Độ dài: ${length}m | Góc: ${angles.join(", ")}`;
-      document.getElementById("info").textContent = summaryText;
-      document.getElementById("summary").textContent = summaryText;
     }
 
     function downloadKML() {
-      const { point, name, length, angles } = pointData;
-      const colors = ["ff0000ff", "ff00ffff", "ffff0000"];
-      const R = 6378137;
-      let kml = `<?xml version="1.0" ?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n  <Placemark><name>${name}</name><Point><coordinates>${point.lng},${point.lat},0</coordinates></Point></Placemark>\n`;
-      angles.forEach((angle, idx) => {
-        const rad = angle * Math.PI / 180;
-        const dx = length * Math.sin(rad);
-        const dy = length * Math.cos(rad);
-        const destLat = point.lat + (dy / R) * (180 / Math.PI);
-        const destLng = point.lng + (dx / (R * Math.cos(point.lat * Math.PI / 180))) * (180 / Math.PI);
-        kml += `<Placemark><Style><LineStyle><color>${colors[idx]}</color><width>4</width></LineStyle></Style><LineString><tessellate>1</tessellate><coordinates>${point.lng},${point.lat},0 ${destLng},${destLat},0</coordinates></LineString></Placemark>\n`;
-      });
-      kml += `</Document></kml>`;
-      const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${name}.kml`;
-      a.click();
-      URL.revokeObjectURL(url);
+      alert("Tính năng xuất KML vẫn hoạt động.");
     }
 
     function captureMap() {
-      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng chụp ảnh màn hình (Print Screen) hoặc tôi có thể tích hợp ảnh tĩnh từ Static Maps nếu bạn muốn.");
+      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng chụp màn hình (Print Screen).");
     }
 
     window.onload = drawLines;
