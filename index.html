@@ -24,7 +24,7 @@
 <body>
   <h2>Nhập thông tin / Enter Information</h2>
 
-  
+  <div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
 
   <label for="point">Toạ độ (dạng bất kỳ):</label>
   <textarea id="point" rows="2" onfocus="clearInput(this)" oninput="updateSummaryText()">-25.9493454, 32.5620781</textarea>
@@ -47,10 +47,11 @@
   <button onclick="drawLines()">Vẽ đường / Draw Lines</button>
   <button onclick="downloadKML()">Xuất KML / Export KML</button>
   <button onclick="captureMap()">Lưu ảnh / Save Image</button>
-  <br><br>
-<div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
-   
+  <button onclick="shareImage()">Chia sẻ hình ảnh / Share Image</button>
+
   <div id="map"></div>
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
   <script>
     let map;
@@ -129,6 +130,16 @@
           map: map
         });
         lines.push(line);
+      });
+    }
+
+    function shareImage() {
+      html2canvas(document.getElementById("map")).then(canvas => {
+          let imgData = canvas.toDataURL("image/png");
+          let link = document.createElement("a");
+          link.href = imgData;
+          link.download = "map_snapshot.png";
+          link.click();
       });
     }
 
