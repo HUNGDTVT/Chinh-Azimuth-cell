@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Directional Lines Bilingual (Satellite Map)</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
@@ -9,22 +9,13 @@
     label { font-weight: bold; display: block; margin-top: 10px; }
     #map { height: 500px; margin-top: 20px; position: relative; }
     button { padding: 10px 20px; font-size: 16px; margin-right: 10px; }
-    #info, #summaryBar {
-      position: absolute;
-      left: 10px;
-      background: rgba(255,255,255,0.8);
-      padding: 6px 10px;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-    #info { bottom: 60px; }
-    #summaryBar {
-      top: 10px;
-      width: 95%;
+    #summaryText {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 10px;
+      margin-bottom: 15px;
       background: rgba(0, 0, 0, 0.7);
       color: white;
-      padding: 10px;
-      font-size: 16px;
       border-radius: 5px;
       text-align: center;
     }
@@ -32,33 +23,32 @@
 </head>
 <body>
   <h2>Nhập thông tin / Enter Information</h2>
-  
+
+  <div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
+
   <label for="point">Toạ độ (dạng bất kỳ):</label>
-  <textarea id="point" rows="2" onfocus="clearInput(this)">-25.9493454, 32.5620781</textarea>
+  <textarea id="point" rows="2" onfocus="clearInput(this)" oninput="updateSummaryText()">-25.9493454, 32.5620781</textarea>
 
   <label for="name">Tên điểm / Point Name:</label>
-  <textarea id="name" rows="2" onfocus="clearInput(this)">MAC278</textarea>
+  <textarea id="name" rows="2" onfocus="clearInput(this)" oninput="updateSummaryText()">MAC278</textarea>
 
   <label for="length">Độ dài mỗi đường (m) / Line Length (m):</label>
-  <textarea id="length" rows="1" onfocus="clearInput(this)">100</textarea>
+  <textarea id="length" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">100</textarea>
 
   <label>Góc 1 / Angle 1 (degrees):</label>
-  <textarea id="angle1" rows="1" onfocus="clearInput(this)">60</textarea>
+  <textarea id="angle1" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">60</textarea>
 
   <label>Góc 2 / Angle 2 (degrees):</label>
-  <textarea id="angle2" rows="1" onfocus="clearInput(this)">180</textarea>
+  <textarea id="angle2" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">180</textarea>
 
   <label>Góc 3 / Angle 3 (degrees):</label>
-  <textarea id="angle3" rows="1" onfocus="clearInput(this)">300</textarea>
+  <textarea id="angle3" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">300</textarea>
 
   <button onclick="drawLines()">Vẽ đường / Draw Lines</button>
   <button onclick="downloadKML()">Xuất KML / Export KML</button>
   <button onclick="captureMap()">Lưu ảnh / Save Image</button>
 
-  <div id="map">
-    <div id="summaryBar"></div>
-    <div id="info"></div>
-  </div>
+  <div id="map"></div>
 
   <script>
     let map;
@@ -69,28 +59,21 @@
       element.value = "";
     }
 
-    function parseCoordinate(input) {
-      const cleaned = input.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
-      const parts = cleaned.split(' ');
-      return parts.length >= 2 ? { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) } : null;
-    }
-
-    function updateSummaryBar() {
+    function updateSummaryText() {
       const name = document.getElementById("name").value;
       const point = document.getElementById("point").value;
-      const length = document.getElementById("length").value;
-      const angles = [
-        document.getElementById("angle1").value,
-        document.getElementById("angle2").value,
-        document.getElementById("angle3").value
-      ].join(", ");
+      const angle1 = document.getElementById("angle1").value;
+      const angle2 = document.getElementById("angle2").value;
+      const angle3 = document.getElementById("angle3").value;
 
-      document.getElementById("summaryBar").innerHTML = `Tên điểm: ${name} | Toạ độ: ${point} | Độ dài: ${length}m | Góc: ${angles}`;
+      document.getElementById("summaryText").innerHTML = 
+        `Mã trạm: ${name} | Toạ độ: ${point} | Góc 1: ${angle1} | Góc 2: ${angle2} | Góc 3: ${angle3}`;
     }
 
     function drawLines() {
       const pointInput = document.getElementById("point").value;
-      const point = parseCoordinate(pointInput);
+      const parts = pointInput.split(',');
+      const point = parts.length >= 2 ? { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) } : null;
       const name = document.getElementById("name").value;
       const length = parseFloat(document.getElementById("length").value);
       const angles = [
@@ -105,8 +88,6 @@
       }
 
       pointData = { point, name, length, angles };
-
-      updateSummaryBar();
 
       if (!map) {
         map = new google.maps.Map(document.getElementById("map"), {
@@ -150,7 +131,7 @@
     }
 
     function downloadKML() {
-      alert("Tính năng xuất KML vẫn hoạt động.");
+      alert("Xuất KML đang hoạt động.");
     }
 
     function captureMap() {
