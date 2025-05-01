@@ -79,8 +79,14 @@
       const pointInput = document.getElementById("point").value;
       const parts = pointInput.split(',');
       const point = parts.length >= 2 ? { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) } : null;
+      const length = parseFloat(document.getElementById("length").value);
+      const angles = [
+        parseFloat(document.getElementById("angle1").value),
+        parseFloat(document.getElementById("angle2").value),
+        parseFloat(document.getElementById("angle3").value)
+      ];
 
-      if (!point) {
+      if (!point || angles.some(isNaN) || isNaN(length)) {
         alert("Vui lòng nhập đúng định dạng.");
         return;
       }
@@ -105,6 +111,27 @@
       });
 
       drawNorthArrow(point);
+
+      const colors = ["#FF0000", "#FFFF00", "#00008B"];
+      const R = 6378137;
+
+      angles.forEach((angle, idx) => {
+        const rad = angle * Math.PI / 180;
+        const dx = length * Math.sin(rad);
+        const dy = length * Math.cos(rad);
+        const destLat = point.lat + (dy / R) * (180 / Math.PI);
+        const destLng = point.lng + (dx / (R * Math.cos(point.lat * Math.PI / 180))) * (180 / Math.PI);
+
+        const line = new google.maps.Polyline({
+          path: [point, { lat: destLat, lng: destLng }],
+          geodesic: true,
+          strokeColor: colors[idx],
+          strokeOpacity: 1.0,
+          strokeWeight: 4,
+          map: map
+        });
+        lines.push(line);
+      });
     }
 
     function drawNorthArrow(point) {
@@ -113,7 +140,6 @@
       const R = 6378137;
       const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
 
-      // Vẽ đường kẻ sọc (đỏ - trắng)
       const northLine = new google.maps.Polyline({
           path: [point, { lat: destLat, lng: point.lng }],
           geodesic: true,
@@ -132,7 +158,6 @@
           map: map
       });
 
-      // Đầu mũi tên
       const arrowSymbol = {
           path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
           strokeColor: "#FF0000",
