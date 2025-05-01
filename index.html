@@ -46,10 +46,11 @@
   <button onclick="drawLines()">Vẽ đường / Draw Lines</button>
   <button onclick="downloadKML()">Xuất KML / Export KML</button>
   <button onclick="captureMap()">Lưu ảnh / Save Image</button>
+  <button onclick="shareImage()">Chia sẻ hình ảnh / Share Image</button>
 
   <BR><BR>
 
-    <div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
+  <div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
 
   <div id="map"></div>
 
@@ -113,6 +114,8 @@
         title: name
       });
 
+      drawNorthArrow(point);
+
       const colors = ["#FF0000", "#FFFF00", "#00008B"];
       const R = 6378137;
 
@@ -135,26 +138,40 @@
       });
     }
 
-    function shareImage() {
-      html2canvas(document.getElementById("map")).then(canvas => {
-          let imgData = canvas.toDataURL("image/png");
-          let link = document.createElement("a");
-          link.href = imgData;
-          link.download = "map_snapshot.png";
-          link.click();
+    function drawNorthArrow(point) {
+      const arrowColor = "#FF0000";
+      const arrowSize = 50;
+      const R = 6378137;
+
+      const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
+      const destLng = point.lng;
+
+      const northLine = new google.maps.Polyline({
+        path: [point, { lat: destLat, lng: destLng }],
+        geodesic: true,
+        strokeColor: arrowColor,
+        strokeOpacity: 1.0,
+        strokeWeight: 3,
+        map: map
+      });
+
+      const arrowHead = [
+        { lat: destLat - 0.0001, lng: destLng - 0.0003 },
+        { lat: destLat, lng: destLng },
+        { lat: destLat - 0.0001, lng: destLng + 0.0003 }
+      ];
+
+      new google.maps.Polygon({
+        paths: arrowHead,
+        strokeColor: arrowColor,
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+        fillColor: arrowColor,
+        fillOpacity: 1.0,
+        map: map
       });
     }
-
-    function downloadKML() {
-      alert("Xuất KML đang hoạt động.");
-    }
-
-    function captureMap() {
-      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng chụp màn hình (Print Screen).");
-    }
-
-    window.onload = drawLines;
   </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAxOrCC56tuPjujnYB53luYRqe2aN-fvik"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
 </body>
 </html>
