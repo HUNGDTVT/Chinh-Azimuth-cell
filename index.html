@@ -17,7 +17,7 @@
       border-radius: 5px;
       font-size: 14px;
     }
-    #info { bottom: 40px; }
+    #info { bottom: 60px; }
     #summary { bottom: 10px; font-weight: bold; }
   </style>
 </head>
@@ -32,8 +32,14 @@
   <label for="length">Độ dài mỗi đường (m) / Line Length (m):</label>
   <textarea id="length" rows="1">100</textarea>
 
-  <label for="angles">3 Góc (độ, cách nhau bởi dấu phẩy) / 3 Angles (degrees, comma-separated):</label>
-  <textarea id="angles" rows="2">60,180,300</textarea>
+  <label>Góc 1 / Angle 1 (degrees):</label>
+  <textarea id="angle1" rows="1">60</textarea>
+
+  <label>Góc 2 / Angle 2 (degrees):</label>
+  <textarea id="angle2" rows="1">180</textarea>
+
+  <label>Góc 3 / Angle 3 (degrees):</label>
+  <textarea id="angle3" rows="1">300</textarea>
 
   <button onclick="drawLines()">Vẽ đường / Draw Lines</button>
   <button onclick="downloadKML()">Xuất KML / Export KML</button>
@@ -64,9 +70,13 @@
       const point = parseCoordinate(pointInput);
       const name = document.getElementById("name").value;
       const length = parseFloat(document.getElementById("length").value);
-      const angles = document.getElementById("angles").value.split(',').map(a => parseFloat(a.trim()));
+      const angles = [
+        parseFloat(document.getElementById("angle1").value),
+        parseFloat(document.getElementById("angle2").value),
+        parseFloat(document.getElementById("angle3").value)
+      ];
 
-      if (!point || angles.length !== 3 || isNaN(length)) {
+      if (!point || angles.some(isNaN) || isNaN(length)) {
         alert("Vui lòng nhập đúng định dạng. Please enter correct format.");
         return;
       }
@@ -78,7 +88,7 @@
           center: point,
           zoom: 20,
           mapTypeId: "satellite",
-          gestureHandling: "greedy"
+          gestureHandling: "auto"
         });
       } else {
         map.setCenter(point);
