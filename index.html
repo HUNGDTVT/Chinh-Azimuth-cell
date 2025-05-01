@@ -59,7 +59,6 @@
   <script>
     let map;
     let lines = [];
-    let pointData = {};
 
     function clearInput(element) {
       element.value = "";
@@ -80,20 +79,11 @@
       const pointInput = document.getElementById("point").value;
       const parts = pointInput.split(',');
       const point = parts.length >= 2 ? { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) } : null;
-      const name = document.getElementById("name").value;
-      const length = parseFloat(document.getElementById("length").value);
-      const angles = [
-        parseFloat(document.getElementById("angle1").value),
-        parseFloat(document.getElementById("angle2").value),
-        parseFloat(document.getElementById("angle3").value)
-      ];
 
-      if (!point || angles.some(isNaN) || isNaN(length)) {
-        alert("Vui lòng nhập đúng định dạng. Please enter correct format.");
+      if (!point) {
+        alert("Vui lòng nhập đúng định dạng.");
         return;
       }
-
-      pointData = { point, name, length, angles };
 
       if (!map) {
         map = new google.maps.Map(document.getElementById("map"), {
@@ -111,64 +101,51 @@
       new google.maps.Marker({
         position: point,
         map: map,
-        title: name
+        title: "Điểm chính"
       });
 
       drawNorthArrow(point);
-
-      const colors = ["#FF0000", "#FFFF00", "#00008B"];
-      const R = 6378137;
-
-      angles.forEach((angle, idx) => {
-        const rad = angle * Math.PI / 180;
-        const dx = length * Math.sin(rad);
-        const dy = length * Math.cos(rad);
-        const destLat = point.lat + (dy / R) * (180 / Math.PI);
-        const destLng = point.lng + (dx / (R * Math.cos(point.lat * Math.PI / 180))) * (180 / Math.PI);
-
-        const line = new google.maps.Polyline({
-          path: [point, { lat: destLat, lng: destLng }],
-          geodesic: true,
-          strokeColor: colors[idx],
-          strokeOpacity: 1.0,
-          strokeWeight: 4,
-          map: map
-        });
-        lines.push(line);
-      });
     }
 
     function drawNorthArrow(point) {
-      const arrowColor = "#FF0000";
-      const arrowSize = 50;
+      const arrowSize = 100;
+      const stripeColor = "#FFFFFF";
       const R = 6378137;
-
       const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
-      const destLng = point.lng;
 
+      // Vẽ đường kẻ sọc (đỏ - trắng)
       const northLine = new google.maps.Polyline({
-        path: [point, { lat: destLat, lng: destLng }],
-        geodesic: true,
-        strokeColor: arrowColor,
-        strokeOpacity: 1.0,
-        strokeWeight: 3,
-        map: map
+          path: [point, { lat: destLat, lng: point.lng }],
+          geodesic: true,
+          strokeColor: "#FF0000",
+          strokeOpacity: 0.8,
+          strokeWeight: 5,
+          map: map
       });
 
-      const arrowHead = [
-        { lat: destLat - 0.0001, lng: destLng - 0.0003 },
-        { lat: destLat, lng: destLng },
-        { lat: destLat - 0.0001, lng: destLng + 0.0003 }
-      ];
+      const northLineStripe = new google.maps.Polyline({
+          path: [point, { lat: destLat, lng: point.lng }],
+          geodesic: true,
+          strokeColor: stripeColor,
+          strokeOpacity: 0.8,
+          strokeWeight: 3,
+          map: map
+      });
 
-      new google.maps.Polygon({
-        paths: arrowHead,
-        strokeColor: arrowColor,
-        strokeOpacity: 1.0,
-        strokeWeight: 2,
-        fillColor: arrowColor,
-        fillOpacity: 1.0,
-        map: map
+      // Đầu mũi tên
+      const arrowSymbol = {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          strokeColor: "#FF0000",
+          strokeWeight: 4,
+          fillColor: "#FF0000",
+          fillOpacity: 1.0,
+          scale: 2
+      };
+
+      new google.maps.Marker({
+          position: { lat: destLat, lng: point.lng },
+          map: map,
+          icon: arrowSymbol
       });
     }
   </script>
