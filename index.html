@@ -75,10 +75,18 @@
         `Mã trạm: ${name} | Toạ độ: ${point} | Góc 1: ${angle1} | Góc 2: ${angle2} | Góc 3: ${angle3}`;
     }
 
+    function parseCoordinate(input) {
+      const cleaned = input.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
+      const parts = cleaned.split(' ');
+      if (parts.length >= 2) {
+        return { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) };
+      }
+      return null;
+    }
+
     function drawLines() {
       const pointInput = document.getElementById("point").value;
-      const parts = pointInput.split(',');
-      const point = parts.length >= 2 ? { lat: parseFloat(parts[0]), lng: parseFloat(parts[1]) } : null;
+      const point = parseCoordinate(pointInput);
       const length = parseFloat(document.getElementById("length").value);
       const angles = [
         parseFloat(document.getElementById("angle1").value),
@@ -141,45 +149,45 @@
       const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
 
       const northLine = new google.maps.Polyline({
-          path: [point, { lat: destLat, lng: point.lng }],
-          geodesic: true,
-          strokeColor: "#FF0000",
-          strokeOpacity: 0.8,
-          strokeWeight: 5,
-          map: map
+        path: [point, { lat: destLat, lng: point.lng }],
+        geodesic: true,
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.8,
+        strokeWeight: 5,
+        map: map
       });
 
       const northLineStripe = new google.maps.Polyline({
-          path: [point, { lat: destLat, lng: point.lng }],
-          geodesic: true,
-          strokeColor: stripeColor,
-          strokeOpacity: 0.8,
-          strokeWeight: 3,
-          map: map
+        path: [point, { lat: destLat, lng: point.lng }],
+        geodesic: true,
+        strokeColor: stripeColor,
+        strokeOpacity: 0.8,
+        strokeWeight: 3,
+        map: map
       });
 
       const arrowSymbol = {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          strokeColor: "#FF0000",
-          strokeWeight: 4,
-          fillColor: "#FF0000",
-          fillOpacity: 1.0,
-          scale: 2
+        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+        strokeColor: "#FF0000",
+        strokeWeight: 4,
+        fillColor: "#FF0000",
+        fillOpacity: 1.0,
+        scale: 2
       };
 
       new google.maps.Marker({
-          position: { lat: destLat, lng: point.lng },
-          map: map,
-          icon: arrowSymbol
+        position: { lat: destLat, lng: point.lng },
+        map: map,
+        icon: arrowSymbol
       });
     }
 
     function captureMap() {
-      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).");
+      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).”);
     }
 
-     function shareImage() {
-      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).");
+    function shareImage() {
+      alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).”);
     }
   </script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAxOrCC56tuPjujnYB53luYRqe2aN-fvik"></script>
