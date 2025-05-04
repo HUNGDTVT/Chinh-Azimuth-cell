@@ -182,7 +182,7 @@
       });
     }
 
-    function downloadKML() {
+function downloadKML() {
   if (!lines.length) {
     alert("Vui lòng vẽ đường trước khi xuất KML.");
     return;
@@ -192,16 +192,34 @@
   const point = parseCoordinate(pointInput);
   const name = document.getElementById("name").value || "Point";
 
+  const colors = ["ff0000ff", "ff00ffff", "ffff0000"]; // KML color format: aabbggrr (blue, yellow, red)
+  const lineNames = ["Góc 1", "Góc 2", "Góc 3"];
+
   let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   kmlContent += `<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
 
+  // Point
   kmlContent += `<Placemark><name>${name}</name>\n<Point><coordinates>${point.lng},${point.lat},0</coordinates></Point></Placemark>\n`;
 
+  // Lines
   lines.forEach((line, index) => {
     const path = line.getPath().getArray();
     const coords = path.map(p => `${p.lng()},${p.lat()},0`).join(" ");
-    kmlContent += `<Placemark>\n<name>Line ${index + 1}</name>\n<LineString><coordinates>${coords}</coordinates></LineString>\n</Placemark>\n`;
+    const color = colors[index % colors.length];
+    const styleId = `lineStyle${index + 1}`;
+
+    kmlContent += `<Style id="${styleId}"><LineStyle><color>${color}</color><width>4</width></LineStyle></Style>\n`;
+    kmlContent += `<Placemark><name>${lineNames[index]}</name><styleUrl>#${styleId}</styleUrl><LineString><coordinates>${coords}</coordinates></LineString></Placemark>\n`;
   });
+
+  // North Arrow (add as final line)
+  const R = 6378137;
+  const arrowSize = 100;
+  const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
+  const northCoords = `${point.lng},${point.lat},0 ${point.lng},${destLat},0`;
+
+  kmlContent += `<Style id="northLine"><LineStyle><color>ff0000ff</color><width>3</width></LineStyle></Style>\n`;
+  kmlContent += `<Placemark><name>Hướng Bắc</name><styleUrl>#northLine</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
 
   kmlContent += `</Document>\n</kml>`;
 
