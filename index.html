@@ -218,8 +218,8 @@ function downloadKML() {
   const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
   const northCoords = `${point.lng},${point.lat},0 ${point.lng},${destLat},0`;
 
-  'kmlContent += `<Style id="northLine"><LineStyle><color>ff0000ff</color><width>3</width></LineStyle></Style>\n`;
-  'kmlContent += `<Placemark><name>Hướng Bắc</name><styleUrl>#northLine</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
+  //kmlContent += `<Style id="northLine"><LineStyle><color>ff0000ff</color><width>3</width></LineStyle></Style>\n`;
+  //kmlContent += `<Placemark><name>Hướng Bắc</name><styleUrl>#northLine</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
 
   // Hướng Bắc: lớp nền đỏ (to)
 kmlContent += `<Style id="northRed"><LineStyle><color>ff0000ff</color><width>5</width></LineStyle></Style>\n`;
