@@ -3,12 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <title>Chỉnh hướng Azimuth (Ảnh Google Map)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    textarea, input { width: 100%; margin-bottom: 10px; padding: 12px; font-size: 18px; }
-    label { font-weight: bold; display: block; margin-top: 10px; }
-    #map { height: 500px; margin-top: 20px; position: relative; }
-    button { padding: 10px 20px; font-size: 16px; margin-right: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+
+    textarea, input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 12px;
+      font-size: 18px;
+      box-sizing: border-box;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+#map {
+  height: 80vh; /* 80% chiều cao màn hình */
+  margin-top: 10px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      width: auto;
+    }
+
     #summaryText {
       font-size: 18px;
       font-weight: bold;
@@ -18,6 +49,38 @@
       color: white;
       border-radius: 5px;
       text-align: center;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      h1, h2 {
+        font-size: 20px;
+        text-align: center;
+      }
+
+      textarea, input {
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      button {
+        width: 100%;
+        font-size: 16px;
+        padding: 10px;
+        margin-right: 0;
+      }
+
+      #map {
+        height: 400px;
+      }
+
+      #summaryText {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
@@ -48,10 +111,9 @@
   <button onclick="captureMap()">Lưu ảnh / Save Image</button>
   <button onclick="shareImage()">Chia sẻ hình ảnh / Share Image</button>
 
-  <BR><BR>
+  <br><br>
 
   <div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
-
   <div id="map"></div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -72,7 +134,7 @@
       const angle3 = document.getElementById("angle3").value;
 
       document.getElementById("summaryText").innerHTML = 
-        `Mã trạm: ${name} | Toạ độ: ${point} | Góc 1: ${angle1} | Góc 2: ${angle2} | Góc 3: ${angle3}`;
+        `Mã trạm: ${name} | Toạ độ: ${point} | Góc 1: ${angle1} | Góc 2: ${angle2} | Góc 3: ${angle3} ( DoanHung )` ;
     }
 
     function parseCoordinate(input) {
@@ -182,67 +244,57 @@
       });
     }
 
-function downloadKML() {
-  if (!lines.length) {
-    alert("Vui lòng vẽ đường trước khi xuất KML.");
-    return;
-  }
+    function downloadKML() {
+      if (!lines.length) {
+        alert("Vui lòng vẽ đường trước khi xuất KML.");
+        return;
+      }
 
-  const pointInput = document.getElementById("point").value;
-  const point = parseCoordinate(pointInput);
-  const name = document.getElementById("name").value || "Point";
+      const pointInput = document.getElementById("point").value;
+      const point = parseCoordinate(pointInput);
+      const name = document.getElementById("name").value || "Point";
 
-  const colors = ["ff0000ff", "ff00ffff", "ffff0000"]; // KML color format: aabbggrr (blue, yellow, red)
-  const lineNames = ["Góc 1", "Góc 2", "Góc 3"];
+      const colors = ["ff0000ff", "ff00ffff", "ffff0000"];
+      const lineNames = ["Góc 1", "Góc 2", "Góc 3"];
 
-  let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-  kmlContent += `<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
+      let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      kmlContent += `<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
 
-  // Point
-  kmlContent += `<Placemark><name>${name}</name>\n<Point><coordinates>${point.lng},${point.lat},0</coordinates></Point></Placemark>\n`;
+      kmlContent += `<Placemark><name>${name}</name>\n<Point><coordinates>${point.lng},${point.lat},0</coordinates></Point></Placemark>\n`;
 
-  // Lines
-  lines.forEach((line, index) => {
-    const path = line.getPath().getArray();
-    const coords = path.map(p => `${p.lng()},${p.lat()},0`).join(" ");
-    const color = colors[index % colors.length];
-    const styleId = `lineStyle${index + 1}`;
+      lines.forEach((line, index) => {
+        const path = line.getPath().getArray();
+        const coords = path.map(p => `${p.lng()},${p.lat()},0`).join(" ");
+        const color = colors[index % colors.length];
+        const styleId = `lineStyle${index + 1}`;
 
-    kmlContent += `<Style id="${styleId}"><LineStyle><color>${color}</color><width>4</width></LineStyle></Style>\n`;
-    kmlContent += `<Placemark><name>${lineNames[index]}</name><styleUrl>#${styleId}</styleUrl><LineString><coordinates>${coords}</coordinates></LineString></Placemark>\n`;
-  });
+        kmlContent += `<Style id="${styleId}"><LineStyle><color>${color}</color><width>4</width></LineStyle></Style>\n`;
+        kmlContent += `<Placemark><name>${lineNames[index]}</name><styleUrl>#${styleId}</styleUrl><LineString><coordinates>${coords}</coordinates></LineString></Placemark>\n`;
+      });
 
-  // North Arrow (add as final line)
-  const R = 6378137;
-  const arrowSize = 100;
-  const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
-  const northCoords = `${point.lng},${point.lat},0 ${point.lng},${destLat},0`;
+      const R = 6378137;
+      const arrowSize = 100;
+      const destLat = point.lat + (arrowSize / R) * (180 / Math.PI);
+      const northCoords = `${point.lng},${point.lat},0 ${point.lng},${destLat},0`;
 
-  //kmlContent += `<Style id="northLine"><LineStyle><color>ff0000ff</color><width>3</width></LineStyle></Style>\n`;
-  //kmlContent += `<Placemark><name>Hướng Bắc</name><styleUrl>#northLine</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
+      kmlContent += `<Style id="northRed"><LineStyle><color>ff0000ff</color><width>5</width></LineStyle></Style>\n`;
+      kmlContent += `<Placemark><name>Hướng Bắc - Viền Đỏ</name><styleUrl>#northRed</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
 
-  // Hướng Bắc: lớp nền đỏ (to)
-kmlContent += `<Style id="northRed"><LineStyle><color>ff0000ff</color><width>5</width></LineStyle></Style>\n`;
-kmlContent += `<Placemark><name>Hướng Bắc - Viền Đỏ</name><styleUrl>#northRed</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
+      kmlContent += `<Style id="northWhite"><LineStyle><color>ffffffff</color><width>3</width></LineStyle></Style>\n`;
+      kmlContent += `<Placemark><name>Hướng Bắc - Lõi Trắng</name><styleUrl>#northWhite</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
 
-// Hướng Bắc: lớp lõi trắng (nhỏ hơn)
-kmlContent += `<Style id="northWhite"><LineStyle><color>ffffffff</color><width>3</width></LineStyle></Style>\n`;
-kmlContent += `<Placemark><name>Hướng Bắc - Lõi Trắng</name><styleUrl>#northWhite</styleUrl><LineString><coordinates>${northCoords}</coordinates></LineString></Placemark>\n`;
+      kmlContent += `</Document>\n</kml>`;
 
-  
-  kmlContent += `</Document>\n</kml>`;
+      const blob = new Blob([kmlContent], { type: "application/vnd.google-earth.kml+xml" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${name}_lines.kml`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
 
-  const blob = new Blob([kmlContent], { type: "application/vnd.google-earth.kml+xml" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${name}_lines.kml`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-    
     function captureMap() {
       alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).");
     }
