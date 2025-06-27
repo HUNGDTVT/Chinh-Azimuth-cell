@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Chỉnh hướng Azimuth (Ảnh Google Map)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -50,13 +50,26 @@
       position: relative;
     }
 
+    /* ==== CHỈNH GIAO DIỆN NÚT BẤM ==== */
     button {
       padding: 10px 20px;
       font-size: 16px;
       margin-right: 10px;
       margin-bottom: 10px;
-      width: auto;
+      
+      background-color: yellow;
+      color: darkblue;
+      border-radius: 8px;
+      border: 1px solid darkblue;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
     }
+
+    button:hover {
+      background-color: red;
+      color: white;
+    }
+    /* =============================== */
 
     #summaryText {
       font-size: 20px;
@@ -102,18 +115,20 @@
   </style>
 </head>
 <body>
-  <h1>Chỉnh hướng Azimuth - DoanHung (Ảnh Google Map)</h1>
-<h2 style="background-color: red; color: white; padding: 10px; border-radius: 5px;">
-  Nhập thông tin / Enter Information
-</h2>
+<h1>  Chỉnh hướng Azimuth - DoanHung (Ảnh Google Map)
+</h1>
 
-  <label for="point"style="font-size: 22px;">Toạ độ (dạng bất kỳ) / Long,Lat:</label>
+  <h2 style="background-color: red; color: white; padding: 10px; border-radius: 5px;">
+    Nhập thông tin / Enter Information
+  </h2>
+
+  <label for="point" style="font-size: 22px;">Toạ độ (dạng bất kỳ) / Long,Lat:</label>
   <textarea id="point" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">-25.9493454, 32.5620781</textarea>
 
-  <label for="name"style="font-size: 22px;">Mã trạm / Site Code:</label>
+  <label for="name" style="font-size: 22px;">Mã trạm / Site Code:</label>
   <textarea id="name" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">MAC278</textarea>
 
-  <label for="length"style="font-size: 22px;">Độ dài mỗi đường (m) / Line Length (m):</label>
+  <label for="length" style="font-size: 22px;">Độ dài mỗi đường (m) / Line Length (m):</label>
   <textarea id="length" rows="1" onfocus="clearInput(this)" oninput="updateSummaryText()">100</textarea>
 
   <div class="angle-group">
@@ -136,7 +151,7 @@
   <button onclick="captureMap()">Lưu ảnh / Save Image</button>
   <button onclick="shareImage()">Chia sẻ hình ảnh / Share Image</button>
 
-  <br><br>
+  <br /><br />
 
   <div id="summaryText">Mã trạm: - | Toạ độ: - | Góc 1: - | Góc 2: - | Góc 3: -</div>
   <div id="map"></div>
@@ -315,7 +330,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${name}_lines.kml`;
+      link.download = `${name}_Azimuth.kml`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -324,6 +339,7 @@
     function captureMap() {
       alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).");
     }
+
 
     function shareImage() {
       alert("Tính năng lưu ảnh hiện tại không thể lưu bản đồ nền. Vui lòng CHỤP MÀN HÌNH (Print Screen).");
